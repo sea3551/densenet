@@ -85,10 +85,26 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs):
             torch.save(model.state_dict(), "best_model.pth")
             print(f"✅ Best Model Saved with Accuracy: {best_acc:.4f}")
 
-# ✅ 평가 함수 (Confusion Matrix를 터미널에서 출력)
+# ✅ Rank-K Accuracy 계산 함수
+def rank_k_accuracy(y_true, y_scores, k=5):
+    """
+    Rank-K Accuracy를 계산합니다.
+    :param y_true: 실제 정답 라벨 리스트
+    :param y_scores: 모델의 예측 확률 (Softmax 값)
+    :param k: Top-K 범위 (기본값: 5)
+    :return: Rank-K 정확도
+    """
+    correct = 0
+    for i in range(len(y_true)):
+        top_k_predictions = np.argsort(y_scores[i])[-k:]  # 상위 K개 예측값 인덱스
+        if y_true[i] in top_k_predictions:
+            correct += 1
+    return correct / len(y_true)
+
+# ✅ 모델 평가 함수 (Confusion Matrix + Rank-K Accuracy 추가)
 def evaluate_model(model, test_loader):
     model.eval()
-    y_true, y_pred = [], []
+    y_true, y_pred, y_scores = [], [], []
 
     with torch.no_grad():
         for images, labels in test_loader:
@@ -96,6 +112,7 @@ def evaluate_model(model, test_loader):
             outputs = model(images)
             y_true.extend(labels.cpu().numpy())
             y_pred.extend(outputs.argmax(1).cpu().numpy())
+            y_scores.extend(outputs.cpu().numpy())  # 확률 값 저장
 
     # ✅ Confusion Matrix 계산
     cm = confusion_matrix(y_true, y_pred)
@@ -107,11 +124,19 @@ def evaluate_model(model, test_loader):
     for i, row in enumerate(cm):
         print(f"{class_labels[i][:4]:>4} " + "  ".join(f"{val:>4}" for val in row))
 
+    # ✅ Rank-K Accuracy 계산
+    rank1_acc = rank_k_accuracy(y_true, y_scores, k=1)
+    rank3_acc = rank_k_accuracy(y_true, y_scores, k=3)
+    rank5_acc = rank_k_accuracy(y_true, y_scores, k=5)
+
     # ✅ 평가 지표 출력
     accuracy = accuracy_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred, average="weighted")
     print(f"\n🔹 Test Accuracy: {accuracy:.4f}")
     print(f"🔹 F1 Score: {f1:.4f}")
+    print(f"🔹 Rank-1 Accuracy: {rank1_acc:.4f}")
+    print(f"🔹 Rank-3 Accuracy: {rank3_acc:.4f}")
+    print(f"🔹 Rank-5 Accuracy: {rank5_acc:.4f}")
     print("\n🔹 Classification Report:\n", classification_report(y_true, y_pred, target_names=class_labels))
 
 # ✅ 모델 학습 실행
