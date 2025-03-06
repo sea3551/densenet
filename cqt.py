@@ -45,13 +45,9 @@ def process_directory(input_dir, output_dir):
             csv_to_spectrogram(file_path, output_dir)
 
 # ✅ 3️⃣ 경로 설정 및 실행
-<<<<<<< HEAD
+
 input_directory = '400_0.5_augment_data/day1/dae'  # CSV 파일이 있는 폴더
 output_directory = 'spectrogram_images/day1/dae'          # 스펙트로그램 이미지 저장 폴더
-=======
-input_directory = '/Users/syj/Desktop/code/augment_data/day1/dae'  # CSV 파일이 있는 폴더
-output_directory = '/Users/syj/Desktop/code/spectrogram_images/day1/dae'          # 스펙트로그램 이미지 저장 폴더
->>>>>>> 9c3ce225915b41c7829d936d178d26046cbb0087
 
 process_directory(input_directory, output_directory)
 print("✅ 모든 CSV 파일이 스펙트로그램 이미지로 변환되었습니다!")
